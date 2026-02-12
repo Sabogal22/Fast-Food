@@ -1,0 +1,20 @@
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+
+    # JWT
+    path("api/token/", TokenObtainPairView.as_view()),
+    path("api/token/refresh/", TokenRefreshView.as_view()),
+
+    # Users
+    path("api/users/", include("apps.users.urls")),
+
+    # Products
+    path("api/", include("apps.products.urls")),
+]

@@ -1,0 +1,28 @@
+# Python
+*.pyc
+__pycache__
+*~
+*.log
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Django
+db.sqlite3
+local_settings.py
+media/
+static/
+
+# IDE specific files (VS Code, PyCharm, etc.)
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+
+# Migraciones
+migrations/
