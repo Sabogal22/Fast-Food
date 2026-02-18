@@ -9,5 +9,4 @@ export interface Product {
   category_name?: string;
   createdAt?: string;
   updatedAt?: string;
-
 }

@@ -11,3 +11,4 @@ class User(AbstractUser):
   ]
 
   role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="mesero")
+  salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
