@@ -14,9 +14,11 @@ const Navbar: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/login");
+    localStorage.removeItem("access");
+    navigate("/");
+    window.location.reload();
   };
-
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex justify-around items-center shadow-lg">
       {/* Dashboard */}
