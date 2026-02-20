@@ -181,6 +181,42 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
+  // Agrega estos estados al inicio del componente
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Función para obtener color según el rol (copia esta función)
+  const getRoleColor = (roleName: string) => {
+    switch (roleName?.toLowerCase()) {
+      case "administrador":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "cajero":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "cocinero":
+        return "bg-orange-100 text-orange-700 border-orange-200";
+      case "domiciliario":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "mesero":
+        return "bg-pink-100 text-pink-700 border-pink-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  // Empleados filtrados por búsqueda
+  const filteredEmpleados = empleados.filter((emp) => {
+    const searchLower = searchTerm.toLowerCase();
+    const fullName =
+      `${emp.first_name || ""} ${emp.last_name || ""}`.toLowerCase();
+    const username = (emp.username || "").toLowerCase();
+    const email = (emp.email || "").toLowerCase();
+
+    return (
+      fullName.includes(searchLower) ||
+      username.includes(searchLower) ||
+      email.includes(searchLower)
+    );
+  });
 
   /* Para cargar los productos */
   useEffect(() => {
@@ -634,90 +670,138 @@ export default function AdminDashboard() {
         </div>
 
         {/* Rendimiento de empleados */}
+        {/* Rendimiento de empleados */}
         <div className="bg-white rounded-2xl shadow-md p-5">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-gray-800 flex items-center gap-2">
               <span className="text-xl">👥</span> Todos los Empleados
             </h3>
-            <span className="text-sm bg-gray-100 px-3 py-1 rounded-full text-gray-600">
-              Total: {empleados.length}
-            </span>
+            <div className="flex items-center gap-3">
+              {/* Botón para ordenar por salario */}
+              <button
+                onClick={() => {
+                  const sorted = [...empleados].sort((a, b) => {
+                    if (sortOrder === "asc") {
+                      return (a.salary || 0) - (b.salary || 0);
+                    } else {
+                      return (b.salary || 0) - (a.salary || 0);
+                    }
+                  });
+                  setEmpleados(sorted);
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                }}
+                className="flex items-center gap-1 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors text-gray-700"
+              >
+                <span>💰</span>
+                Ordenar por salario
+                <span className="text-lg">
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </span>
+              </button>
+              <span className="text-sm bg-gray-100 px-3 py-1 rounded-full text-gray-600">
+                Total: {empleados.length}
+              </span>
+            </div>
           </div>
 
           {/* Barra de búsqueda rápida */}
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Buscar empleado..."
+              placeholder="Buscar empleado por nombre o email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Lista de empleados */}
           <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-            {empleados.map((emp, idx) => (
-              <div
-                key={emp.id || idx}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
-              >
-                <div className="flex items-center gap-3">
-                  {/* Avatar con iniciales */}
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                      emp.is_active
-                        ? "bg-linear-to-br from-blue-500 to-blue-600"
-                        : "bg-gray-400"
-                    }`}
-                  >
-                    {emp.first_name?.[0]}
-                    {emp.last_name?.[0]}
+            {filteredEmpleados.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No se encontraron empleados
+              </div>
+            ) : (
+              filteredEmpleados.map((emp, idx) => (
+                <div
+                  key={emp.id || idx}
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Avatar con iniciales */}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                        emp.is_active
+                          ? "bg-linear-to-br from-blue-500 to-blue-600"
+                          : "bg-gray-400"
+                      }`}
+                    >
+                      {emp.first_name?.[0] || emp.username?.[0] || "?"}
+                      {emp.last_name?.[0] || ""}
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-gray-800">
+                        {emp.first_name || emp.last_name
+                          ? `${emp.first_name || ""} ${emp.last_name || ""}`.trim()
+                          : emp.username || "Sin nombre"}
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Rol con color dinámico */}
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleColor(emp.role)}`}
+                        >
+                          {emp.role || "Sin rol"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          📧 {emp.email || "Sin email"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <p className="font-semibold text-gray-800">
-                      {emp.first_name} {emp.last_name}
-                    </p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium">
-                        {emp.role}
+                  <div className="text-right">
+                    <div className="text-gray-800 font-bold">
+                      {emp.salary ? (
+                        `$${emp.salary.toLocaleString()}`
+                      ) : (
+                        <span className="text-gray-400 text-sm">
+                          No asignado
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 justify-end text-xs">
+                      <span
+                        className={`flex items-center gap-1 ${
+                          emp.is_active ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {emp.is_active ? "Activo" : "Inactivo"}
                       </span>
-                      <span className="text-xs text-gray-500">
-                        📧 {emp.email || "Sin email"}
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-400 text-xs">
+                        {emp.last_login
+                          ? new Date(emp.last_login).toLocaleDateString()
+                          : "Nunca"}
                       </span>
                     </div>
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <div className="text-gray-800 font-bold">
-                    ${emp.salary?.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2 justify-end text-xs">
-                    <span
-                      className={`flex items-center gap-1 ${
-                        emp.is_active ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                      {emp.is_active ? "Activo" : "Inactivo"}
-                    </span>
-                    <span className="text-gray-400">•</span>
-                    <span className="text-gray-400 text-xs">
-                      {emp.last_login
-                        ? new Date(emp.last_login).toLocaleDateString()
-                        : "Nunca"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Footer con acciones */}
           <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-            <button className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={() => navigate("/admin/employees")} className="text-sm text-gray-500 hover:text-gray-700">
               Ver todos →
             </button>
+            {sortOrder && (
+              <span className="text-xs text-gray-400">
+                Ordenado por salario {sortOrder === "asc" ? "↑" : "↓"}
+              </span>
+            )}
           </div>
         </div>
       </div>
