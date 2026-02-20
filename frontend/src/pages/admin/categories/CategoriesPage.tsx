@@ -13,6 +13,7 @@ export default function CategoriesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   const fetchCategories = async () => {
@@ -24,7 +25,7 @@ export default function CategoriesPage() {
         title: "Error",
         text: "No se pudieron cargar las categorías",
         icon: "error",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         timer: 2000,
         timerProgressBar: true,
       });
@@ -41,7 +42,7 @@ export default function CategoriesPage() {
         title: "Campo requerido",
         text: "El nombre de la categoría es obligatorio",
         icon: "warning",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         timer: 2000,
         timerProgressBar: true,
       });
@@ -56,7 +57,7 @@ export default function CategoriesPage() {
         title: "¡Creada!",
         text: "La categoría se creó correctamente",
         icon: "success",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         timer: 1500,
         timerProgressBar: true,
         showConfirmButton: false,
@@ -70,7 +71,7 @@ export default function CategoriesPage() {
         title: "Error",
         text: "No se pudo crear la categoría",
         icon: "error",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         confirmButtonText: "Entendido",
       });
     } finally {
@@ -100,7 +101,7 @@ export default function CategoriesPage() {
         title: "¡Eliminada!",
         text: "La categoría se eliminó correctamente",
         icon: "success",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         timer: 1500,
         timerProgressBar: true,
         showConfirmButton: false,
@@ -112,7 +113,7 @@ export default function CategoriesPage() {
         title: "Error",
         text: "No se pudo eliminar la categoría",
         icon: "error",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         confirmButtonText: "Cerrar",
       });
     }
@@ -130,7 +131,7 @@ export default function CategoriesPage() {
         title: "Campo requerido",
         text: "El nombre de la categoría es obligatorio",
         icon: "warning",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         timer: 2000,
         timerProgressBar: true,
       });
@@ -147,7 +148,7 @@ export default function CategoriesPage() {
         title: "¡Actualizada!",
         text: "La categoría se actualizó correctamente",
         icon: "success",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         timer: 1500,
         timerProgressBar: true,
         showConfirmButton: false,
@@ -160,7 +161,7 @@ export default function CategoriesPage() {
         title: "Error",
         text: "No se pudo actualizar la categoría",
         icon: "error",
-        confirmButtonColor: "#3b82f6",
+        confirmButtonColor: "#f97316",
         confirmButtonText: "Cerrar",
       });
     }
@@ -172,96 +173,120 @@ export default function CategoriesPage() {
     setEditDescription("");
   };
 
-  const showSuccessMessage = (message: string) => {
-    Swal.fire({
-      title: "Éxito",
-      text: message,
-      icon: "success",
-      confirmButtonColor: "#3b82f6",
-      timer: 1500,
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
+  // Función para obtener color aleatorio pero consistente para cada categoría
+  const getCategoryColor = (id: number) => {
+    const colors = [
+      "from-blue-500 to-blue-600",
+      "from-green-500 to-green-600",
+      "from-purple-500 to-purple-600",
+      "from-pink-500 to-pink-600",
+      "from-yellow-500 to-yellow-600",
+      "from-red-500 to-red-600",
+      "from-indigo-500 to-indigo-600",
+      "from-orange-500 to-orange-600",
+    ];
+    return colors[id % colors.length];
   };
 
+  // Filtrar categorías por búsqueda
+  const filteredCategories = categories.filter(
+    (cat) =>
+      cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cat.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30 transform rotate-3">
-              <span className="text-2xl">📋</span>
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 pb-20">
+      {/* Header con diseño mejorado */}
+      <div className="bg-linear-to-r from-orange-600 via-orange-500 to-red-600 text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 py-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
+                <span className="text-4xl">📋</span>
+              </div>
+              <div>
+                <h1 className="text-4xl font-black tracking-tight">
+                  Categorías
+                </h1>
+                <p className="text-orange-100 mt-1 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-orange-200 rounded-full"></span>
+                  Organiza tus productos por categorías
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+              <span className="text-sm font-medium">
+                {categories.length} categorías
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="max-w-7xl mx-auto px-6 -mt-8">
+        {/* Formulario de creación - Estilo moderno */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-linear-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-md">
+              <span className="text-2xl text-white">✨</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold bg-linear-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                Categorías
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Gestiona las categorías de tus productos
+              <h2 className="text-xl font-bold text-gray-800">
+                Nueva categoría
+              </h2>
+              <p className="text-sm text-gray-500">
+                Completa los campos para crear una nueva categoría
               </p>
             </div>
           </div>
-          <div className="bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span className="text-sm text-gray-600">
-              {categories.length} categorías
-            </span>
-          </div>
-        </div>
-
-        {/* Formulario de creación */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8 transform hover:scale-[1.01] transition-all duration-300">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-lg">✨</span>
-            </div>
-            <h2 className="text-lg font-semibold text-gray-800">
-              Nueva categoría
-            </h2>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-gray-700">
                 Nombre <span className="text-red-500">*</span>
               </label>
-              <input
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:bg-white transition-all outline-none placeholder:text-gray-400"
-                placeholder="Ej. Bebidas, Postres, etc."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={50}
-              />
-              <span className="absolute right-3 bottom-3 text-xs text-gray-400">
-                {name.length}/50
-              </span>
+              <div className="relative">
+                <input
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
+                  placeholder="Ej. Bebidas, Postres, etc."
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={50}
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                  {name.length}/50
+                </span>
+              </div>
             </div>
 
-            <div className="relative md:col-span-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">
+            <div className="space-y-1.5 md:col-span-1">
+              <label className="block text-sm font-semibold text-gray-700">
                 Descripción
               </label>
-              <input
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:bg-white transition-all outline-none placeholder:text-gray-400"
-                placeholder="Descripción opcional"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={100}
-              />
-              <span className="absolute right-3 bottom-3 text-xs text-gray-400">
-                {description.length}/100
-              </span>
+              <div className="relative">
+                <input
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
+                  placeholder="Descripción opcional"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={100}
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                  {description.length}/100
+                </span>
+              </div>
             </div>
 
             <div className="flex items-end">
               <button
                 onClick={handleCreate}
                 disabled={loading || !name.trim()}
-                className={`w-full px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+                className={`w-full px-6 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
                   loading || !name.trim()
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl transform hover:scale-[1.02]"
+                    : "bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl transform hover:-translate-y-0.5"
                 }`}
               >
                 {loading ? (
@@ -280,40 +305,108 @@ export default function CategoriesPage() {
           </div>
         </div>
 
-        {/* Tabla de categorías */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Header de la tabla */}
-          <div className="px-6 py-4 bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
+        {/* Estadísticas rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+          <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">📌</span>
-                <h2 className="font-semibold text-gray-800">
-                  Listado de categorías
-                </h2>
+              <div>
+                <p className="text-sm text-gray-500 font-medium">
+                  Total categorías
+                </p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">
+                  {categories.length}
+                </p>
               </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">📋</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">
+                  Con descripción
+                </p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">
+                  {categories.filter((c) => c.description).length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">📝</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">
+                  Sin descripción
+                </p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">
+                  {categories.filter((c) => !c.description).length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">🔍</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Listado de categorías */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-linear-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-md">
+                  <span className="text-2xl text-white">📌</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Listado de categorías
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {filteredCategories.length} categorías encontradas
+                  </p>
+                </div>
+              </div>
+
+              {/* Buscador */}
               <div className="relative">
-                <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   🔍
                 </span>
                 <input
                   type="text"
                   placeholder="Buscar categoría..."
-                  className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none w-64"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Tabla */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     ID
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Nombre
+                    Categoría
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Descripción
@@ -323,38 +416,44 @@ export default function CategoriesPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {categories.length === 0 ? (
+              <tbody className="divide-y divide-gray-200">
+                {filteredCategories.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center">
+                    <td colSpan={4} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
-                        <span className="text-5xl">📭</span>
-                        <p className="text-gray-500 font-medium">
-                          No hay categorías
+                        <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center">
+                          <span className="text-5xl">📭</span>
+                        </div>
+                        <p className="text-gray-600 font-semibold text-lg">
+                          {searchTerm
+                            ? "No hay resultados"
+                            : "No hay categorías"}
                         </p>
                         <p className="text-sm text-gray-400">
-                          Crea tu primera categoría usando el formulario
+                          {searchTerm
+                            ? "Intenta con otro término de búsqueda"
+                            : "Crea tu primera categoría usando el formulario"}
                         </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  categories.map((cat) => (
+                  filteredCategories.map((cat) => (
                     <tr
                       key={cat.id}
-                      className="hover:bg-blue-50/30 transition-colors group"
+                      className="hover:bg-orange-50/30 transition-colors group"
                     >
                       {editingId === cat.id ? (
                         // Modo edición
                         <>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            <span className="bg-gray-100 px-2 py-1 rounded-lg">
+                          <td className="px-6 py-4">
+                            <span className="bg-gray-100 px-2 py-1 rounded-lg text-sm font-medium text-gray-600">
                               #{cat.id}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <input
-                              className="w-full px-3 py-2 bg-white border-2 border-blue-500 rounded-lg focus:ring-4 focus:ring-blue-100 outline-none text-sm"
+                              className="w-full px-3 py-2 bg-white border-2 border-orange-500 rounded-xl focus:ring-4 focus:ring-orange-100 outline-none text-sm"
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
                               autoFocus
@@ -362,7 +461,7 @@ export default function CategoriesPage() {
                           </td>
                           <td className="px-6 py-4">
                             <input
-                              className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm"
+                              className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none text-sm"
                               value={editDescription}
                               onChange={(e) =>
                                 setEditDescription(e.target.value)
@@ -374,14 +473,14 @@ export default function CategoriesPage() {
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleUpdate(cat.id)}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1"
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-all flex items-center gap-1 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                               >
                                 <span>✅</span>
                                 Guardar
                               </button>
                               <button
                                 onClick={cancelEdit}
-                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-all"
                               >
                                 Cancelar
                               </button>
@@ -391,24 +490,31 @@ export default function CategoriesPage() {
                       ) : (
                         // Modo visualización
                         <>
-                          <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                            <span className="bg-gray-100 px-2 py-1 rounded-lg">
+                          <td className="px-6 py-4">
+                            <span className="bg-gray-100 px-2 py-1 rounded-lg text-sm font-medium text-gray-600">
                               #{cat.id}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-800">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-lg bg-linear-to-br ${getCategoryColor(cat.id)} flex items-center justify-center text-white font-bold text-sm shadow-sm`}
+                              >
+                                {cat.name.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-semibold text-gray-900">
                                 {cat.name}
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {cat.description || (
-                              <span className="text-gray-400 italic">
-                                Sin descripción
-                              </span>
-                            )}
+                          <td className="px-6 py-4">
+                            <span className="text-sm text-gray-600">
+                              {cat.description || (
+                                <span className="text-gray-400 italic">
+                                  Sin descripción
+                                </span>
+                              )}
+                            </span>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -442,48 +548,24 @@ export default function CategoriesPage() {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
               <p className="text-sm text-gray-600">
                 Mostrando{" "}
-                <span className="font-semibold">{categories.length}</span>{" "}
+                <span className="font-semibold">
+                  {filteredCategories.length}
+                </span>{" "}
+                de <span className="font-semibold">{categories.length}</span>{" "}
                 categorías
               </p>
-              <button
-                onClick={() => {
-                  Swal.fire({
-                    title: "Exportar categorías",
-                    text: "¿Deseas exportar la lista de categorías?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3b82f6",
-                    cancelButtonColor: "#6b7280",
-                    confirmButtonText: "Sí, exportar",
-                    cancelButtonText: "Cancelar",
-                  });
-                }}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-              >
-                <span>📤</span>
-                Exportar
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">
+                  Última actualización: {new Date().toLocaleDateString()}
+                </span>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Tips rápidos */}
-        <div className="mt-6 bg-blue-50 rounded-2xl p-4 border border-blue-200 flex items-start gap-3">
-          <span className="text-2xl">💡</span>
-          <div>
-            <p className="text-sm font-medium text-blue-800">
-              Consejos rápidos:
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              • Las categorías te ayudan a organizar tus productos • Puedes
-              editar o eliminar categorías en cualquier momento • El nombre es
-              obligatorio, la descripción es opcional
-            </p>
-          </div>
-        </div>
-        {/* Barra inferior de navegación admin */}
-        <Navbar />
       </div>
+
+      {/* Navbar inferior */}
+      <Navbar />
     </div>
   );
 }
