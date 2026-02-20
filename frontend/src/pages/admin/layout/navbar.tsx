@@ -13,7 +13,7 @@ const Navbar: React.FC = () => {
         <span className="text-2xl">📊</span>
         <span className="text-xs">Dashboard</span>
       </button>
-      <button className="flex flex-col items-center text-gray-600 hover:text-purple-600">
+      <button onClick={() => navigate("/admin/employees")} className="flex flex-col items-center text-gray-600 hover:text-purple-600">
         <span className="text-2xl">👥</span>
         <span className="text-xs">Empleados</span>
       </button>

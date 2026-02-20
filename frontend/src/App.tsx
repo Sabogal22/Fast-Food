@@ -14,6 +14,7 @@ import DomiciliarioDashboard from "./pages/domiciliario/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import CategoriesPage from "./pages/admin/categories/CategoriesPage";
 import ProductsPage from "./pages/admin/products/ProductsPage";
+import EmployeesPage from "./pages/admin/employees/EmployeesPage";
 
 function App() {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ function App() {
           <Route path="/" element={<AdminDashboard />} />
           <Route path="/admin/categories" element={<CategoriesPage />} />
           <Route path="/admin/products" element={<ProductsPage />} />
+          <Route path="/admin/employees" element={<EmployeesPage />} />
         </>
       )}
       {/* Ruta para el Domiciliario */}
