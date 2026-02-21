@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -35,6 +35,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class EmployeeListView(ListAPIView):
+class EmployeeListView(ModelViewSet):
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
     queryset = User.objects.all()

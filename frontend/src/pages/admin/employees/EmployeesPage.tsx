@@ -1,11 +1,18 @@
 import Navbar from "../layout/navbar";
 import { useState, useEffect } from "react";
-import { getEmployees } from "../../../services/employe";
+import {
+  getEmployees,
+  createEmployees,
+  updateEmployees,
+  deleteEmployees,
+} from "../../../services/employe";
 
 const EmployeesPage = () => {
   // Estado para controlar si el formulario está abierto o cerrado
   const [showForm, setShowForm] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
@@ -13,19 +20,23 @@ const EmployeesPage = () => {
 
   const fetchEmployees = async () => {
     try {
+      setLoading(true);
       const res = await getEmployees();
       setEmployees(res.data);
     } catch (error) {
       console.error("Error trayendo empleados", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Estado para el formulario
+  // Estado para el formulario - AGREGADO CAMPO PASSWORD
   const [form, setForm] = useState({
     username: "",
     email: "",
     first_name: "",
     last_name: "",
+    password: "",
     role: "",
     salary: "",
     is_active: true,
@@ -37,10 +48,12 @@ const EmployeesPage = () => {
   // Función para obtener el ícono según el rol
   const getRoleIcon = (roleName: string) => {
     switch (roleName?.toLowerCase()) {
+      case "admin":
       case "administrador":
         return "👑";
       case "cajero":
         return "💰";
+      case "cocina":
       case "cocinero":
         return "👨‍🍳";
       case "domiciliario":
@@ -55,10 +68,12 @@ const EmployeesPage = () => {
   // NUEVA FUNCIÓN: Obtener color según el rol
   const getRoleColor = (roleName: string) => {
     switch (roleName?.toLowerCase()) {
+      case "admin":
       case "administrador":
         return "bg-purple-100 text-purple-700 border-purple-200";
       case "cajero":
         return "bg-green-100 text-green-700 border-green-200";
+      case "cocina":
       case "cocinero":
         return "bg-orange-100 text-orange-700 border-orange-200";
       case "domiciliario":
@@ -112,6 +127,7 @@ const EmployeesPage = () => {
       email: employee.email,
       first_name: employee.first_name || "",
       last_name: employee.last_name || "",
+      password: "",
       role: employee.role?.toString() || "",
       salary: employee.salary?.toString() || "",
       is_active: employee.is_active,
@@ -119,26 +135,55 @@ const EmployeesPage = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(editingId ? "Empleado actualizado (demo)" : "Empleado creado (demo)");
 
-    setShowForm(false);
-    setEditingId(null);
-    setForm({
-      username: "",
-      email: "",
-      first_name: "",
-      last_name: "",
-      role: "",
-      salary: "",
-      is_active: true,
-    });
+    try {
+      // En modo edición, no enviamos password si está vacío
+      const payload: any = {
+        username: form.username,
+        email: form.email,
+        first_name: form.first_name || null,
+        last_name: form.last_name || null,
+        role: form.role,
+        salary: form.salary ? Number(form.salary) : null,
+        is_active: form.is_active,
+      };
+
+      // Solo incluir password si no está vacío (para creación o cambio)
+      if (form.password) {
+        payload.password = form.password;
+      }
+
+      if (editingId) {
+        await updateEmployees(editingId, payload);
+        alert("Empleado actualizado correctamente");
+      } else {
+        if (!form.password) {
+          alert("La contraseña es obligatoria para nuevos empleados");
+          return;
+        }
+        await createEmployees(payload);
+        alert("Empleado creado correctamente");
+      }
+
+      await fetchEmployees(); // refresca lista
+      cancelForm();
+    } catch (error: any) {
+      console.error("Error guardando empleado", error.response?.data);
+      alert(JSON.stringify(error.response?.data));
+    }
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("¿Estás seguro de eliminar este empleado? (demo)")) {
-      alert(`Empleado ${id} eliminado (demo)`);
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("¿Estas seguro de eliminar este empleado?")) return;
+
+    try {
+      await deleteEmployees(id);
+      await fetchEmployees();
+    } catch (error) {
+      console.log("Error eliminando el empleado", error);
+      alert("No se pudo eliminar el empleado");
     }
   };
 
@@ -150,19 +195,21 @@ const EmployeesPage = () => {
       email: "",
       first_name: "",
       last_name: "",
+      password: "",
       role: "",
       salary: "",
       is_active: true,
     });
+    setShowPassword(false);
   };
 
   // Roles quemados para el select
   const roles = [
-    "Administrador",
-    "Cajero",
-    "Cocinero",
-    "Domiciliario",
-    "Mesero",
+    { value: "admin", label: "Administrador" },
+    { value: "cajero", label: "Cajero" },
+    { value: "cocina", label: "Cocina" },
+    { value: "domiciliario", label: "Domiciliario" },
+    { value: "mesero", label: "Mesero" },
   ];
 
   return (
@@ -200,6 +247,7 @@ const EmployeesPage = () => {
                     email: "",
                     first_name: "",
                     last_name: "",
+                    password: "",
                     role: "",
                     salary: "",
                     is_active: true,
@@ -217,7 +265,7 @@ const EmployeesPage = () => {
 
       {/* Contenido principal */}
       <div className="max-w-8xl mx-auto px-6 -mt-8">
-        {/* Formulario */}
+        {/* Formulario - AGREGADO CAMPO DE CONTRASEÑA */}
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100 animate-fadeIn">
             <div className="flex items-center justify-between mb-6">
@@ -283,6 +331,43 @@ const EmployeesPage = () => {
                   />
                 </div>
 
+                {/* Contraseña - NUEVO CAMPO */}
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Contraseña {!editingId && <span className="text-red-500">*</span>}
+                    {editingId && (
+                      <span className="text-xs text-gray-500 ml-2">
+                        (Dejar en blanco para no cambiar)
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder={editingId ? "••••••••" : "Mínimo 6 caracteres"}
+                      value={form.password}
+                      onChange={(e) =>
+                        setForm({ ...form, password: e.target.value })
+                      }
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white pr-12"
+                      required={!editingId}
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? "👁️" : "👁️‍🗨️"}
+                    </button>
+                  </div>
+                  {!editingId && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Mínimo 6 caracteres
+                    </p>
+                  )}
+                </div>
+
                 {/* Nombres */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-gray-700">
@@ -328,8 +413,8 @@ const EmployeesPage = () => {
                   >
                     <option value="">Selecciona un rol</option>
                     {roles.map((rol, index) => (
-                      <option key={index} value={rol}>
-                        {rol}
+                      <option key={index} value={rol.value}>
+                        {rol.label}
                       </option>
                     ))}
                   </select>
@@ -474,7 +559,7 @@ const EmployeesPage = () => {
           </div>
         </div>
 
-        {/* Listado de empleados - CON ROLES DE COLORES */}
+        {/* Listado de empleados */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
             <div className="flex items-center gap-3">
@@ -523,7 +608,16 @@ const EmployeesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {employees.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="text-center py-10">
+                      <div className="flex justify-center items-center gap-2">
+                        <span className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></span>
+                        <span className="text-gray-500">Cargando empleados...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : employees.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
@@ -571,7 +665,6 @@ const EmployeesPage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {/* ROL CON COLORES DIFERENTES - ACTUALIZADO */}
                         <span
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${getRoleColor(emp.role)}`}
                         >
@@ -606,6 +699,7 @@ const EmployeesPage = () => {
                           <button
                             onClick={() => handleEdit(emp)}
                             className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                            title="Editar empleado"
                           >
                             <span className="text-lg">✏️</span>
                             <span className="text-sm font-medium">Editar</span>
@@ -613,6 +707,7 @@ const EmployeesPage = () => {
                           <button
                             onClick={() => handleDelete(emp.id)}
                             className="flex items-center gap-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                            title="Eliminar empleado"
                           >
                             <span className="text-lg">🗑️</span>
                             <span className="text-sm font-medium">
