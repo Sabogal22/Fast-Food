@@ -1,97 +1,34 @@
 import Navbar from "../layout/navbar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getEmployees } from "../../../services/employe";
 
 const EmployeesPage = () => {
   // Estado para controlar si el formulario está abierto o cerrado
   const [showForm, setShowForm] = useState(false);
-  
-  // Datos quemados para la vista
-  const [employees] = useState([
-    {
-      id: 1,
-      name: "Carlos Rodríguez",
-      email: "carlos.rodriguez@fastfood.com",
-      phone: "+57 321 654 9870",
-      position: "Cajero Principal",
-      role: "Cajero",
-      hire_date: "2023-05-15",
-      salary: 1800000,
-      schedule: "Lunes a Viernes 8am-5pm",
-      status: "activo",
-    },
-    {
-      id: 2,
-      name: "María Fernanda López",
-      email: "maria.lopez@fastfood.com",
-      phone: "+57 310 234 5678",
-      position: "Cocinera",
-      role: "Cocinero",
-      hire_date: "2023-08-20",
-      salary: 2000000,
-      schedule: "Martes a Sábado 2pm-10pm",
-      status: "activo",
-    },
-    {
-      id: 3,
-      name: "Jhonatan Pérez",
-      email: "jhonatan.perez@fastfood.com",
-      phone: "+57 315 789 1234",
-      position: "Domiciliario",
-      role: "Domiciliario",
-      hire_date: "2024-01-10",
-      salary: 1600000,
-      schedule: "Lunes a Sábado 10am-6pm",
-      status: "descanso",
-    },
-    {
-      id: 4,
-      name: "Laura Martínez",
-      email: "laura.martinez@fastfood.com",
-      phone: "+57 301 456 7890",
-      position: "Administradora",
-      role: "Administrador",
-      hire_date: "2022-11-03",
-      salary: 2800000,
-      schedule: "Lunes a Viernes 9am-6pm",
-      status: "activo",
-    },
-    {
-      id: 5,
-      name: "Andrés Camilo Restrepo",
-      email: "andres.restrepo@fastfood.com",
-      phone: "+57 322 567 8901",
-      position: "Mesero",
-      role: "Mesero",
-      hire_date: "2024-03-22",
-      salary: 1400000,
-      schedule: "Viernes a Domingo 4pm-11pm",
-      status: "activo",
-    },
-    {
-      id: 6,
-      name: "Diana Patricia Gómez",
-      email: "diana.gomez@fastfood.com",
-      phone: "+57 318 678 9012",
-      position: "Cajera",
-      role: "Cajero",
-      hire_date: "2023-09-14",
-      salary: 1700000,
-      schedule: "Miércoles a Domingo 11am-7pm",
-      status: "vacaciones",
-    },
-  ]);
+  const [employees, setEmployees] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await getEmployees();
+      setEmployees(res.data);
+    } catch (error) {
+      console.error("Error trayendo empleados", error);
+    }
+  };
 
   // Estado para el formulario
   const [form, setForm] = useState({
-    name: "",
+    username: "",
     email: "",
-    phone: "",
-    position: "",
+    first_name: "",
+    last_name: "",
     role: "",
-    hire_date: "",
     salary: "",
-    schedule: "",
-    status: "activo",
+    is_active: true,
   });
 
   // Estado para saber si estamos editando
@@ -99,7 +36,7 @@ const EmployeesPage = () => {
 
   // Función para obtener el ícono según el rol
   const getRoleIcon = (roleName: string) => {
-    switch (roleName.toLowerCase()) {
+    switch (roleName?.toLowerCase()) {
       case "administrador":
         return "👑";
       case "cajero":
@@ -115,18 +52,27 @@ const EmployeesPage = () => {
     }
   };
 
-  // Función para obtener el color según el estado
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "activo":
-        return "bg-green-100 text-green-700";
-      case "descanso":
-        return "bg-yellow-100 text-yellow-700";
-      case "vacaciones":
-        return "bg-blue-100 text-blue-700";
+  // NUEVA FUNCIÓN: Obtener color según el rol
+  const getRoleColor = (roleName: string) => {
+    switch (roleName?.toLowerCase()) {
+      case "administrador":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "cajero":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "cocinero":
+        return "bg-orange-100 text-orange-700 border-orange-200";
+      case "domiciliario":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "mesero":
+        return "bg-pink-100 text-pink-700 border-pink-200";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 text-gray-700 border-gray-200";
     }
+  };
+
+  // Función para obtener el color según el estado (is_active)
+  const getStatusColor = (isActive: boolean) => {
+    return isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700";
   };
 
   // Función para formatear moneda
@@ -138,40 +84,55 @@ const EmployeesPage = () => {
     }).format(value);
   };
 
+  // Función para formatear la fecha de último login
+  const formatLastLogin = (lastLogin: string | null) => {
+    if (!lastLogin) return "Nunca";
+    return new Date(lastLogin).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Función para obtener el nombre completo
+  const getFullName = (employee: any) => {
+    return (
+      `${employee.first_name || ""} ${employee.last_name || ""}`.trim() ||
+      employee.username
+    );
+  };
+
   // Funciones simuladas para la vista
   const handleEdit = (employee: any) => {
     setEditingId(employee.id);
     setForm({
-      name: employee.name,
+      username: employee.username,
       email: employee.email,
-      phone: employee.phone || "",
-      position: employee.position,
-      role: employee.role,
-      hire_date: employee.hire_date,
-      salary: employee.salary.toString(),
-      schedule: employee.schedule || "",
-      status: employee.status,
+      first_name: employee.first_name || "",
+      last_name: employee.last_name || "",
+      role: employee.role?.toString() || "",
+      salary: employee.salary?.toString() || "",
+      is_active: employee.is_active,
     });
-    setShowForm(true); // Abrir el formulario cuando se edita
+    setShowForm(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     alert(editingId ? "Empleado actualizado (demo)" : "Empleado creado (demo)");
-    
-    // Cerrar formulario y limpiar después de guardar
+
     setShowForm(false);
     setEditingId(null);
     setForm({
-      name: "",
+      username: "",
       email: "",
-      phone: "",
-      position: "",
+      first_name: "",
+      last_name: "",
       role: "",
-      hire_date: "",
       salary: "",
-      schedule: "",
-      status: "activo",
+      is_active: true,
     });
   };
 
@@ -185,20 +146,24 @@ const EmployeesPage = () => {
     setShowForm(false);
     setEditingId(null);
     setForm({
-      name: "",
+      username: "",
       email: "",
-      phone: "",
-      position: "",
+      first_name: "",
+      last_name: "",
       role: "",
-      hire_date: "",
       salary: "",
-      schedule: "",
-      status: "activo",
+      is_active: true,
     });
   };
 
   // Roles quemados para el select
-  const roles = ["Administrador", "Cajero", "Cocinero", "Domiciliario", "Mesero"];
+  const roles = [
+    "Administrador",
+    "Cajero",
+    "Cocinero",
+    "Domiciliario",
+    "Mesero",
+  ];
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 pb-20">
@@ -211,7 +176,9 @@ const EmployeesPage = () => {
                 <span className="text-4xl">👥</span>
               </div>
               <div>
-                <h1 className="text-4xl font-black tracking-tight">Empleados</h1>
+                <h1 className="text-4xl font-black tracking-tight">
+                  Empleados
+                </h1>
                 <p className="text-orange-100 mt-1 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-orange-200 rounded-full"></span>
                   Gestiona el equipo de tu restaurante de comidas rápidas
@@ -220,23 +187,22 @@ const EmployeesPage = () => {
             </div>
             <div className="flex items-center gap-4">
               <div className="bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-                <span className="text-sm font-medium">{employees.length} empleados</span>
+                <span className="text-sm font-medium">
+                  {employees.length} empleados
+                </span>
               </div>
-              {/* Botón para abrir el formulario */}
               <button
                 onClick={() => {
                   setShowForm(true);
                   setEditingId(null);
                   setForm({
-                    name: "",
+                    username: "",
                     email: "",
-                    phone: "",
-                    position: "",
+                    first_name: "",
+                    last_name: "",
                     role: "",
-                    hire_date: "",
                     salary: "",
-                    schedule: "",
-                    status: "activo",
+                    is_active: true,
                   });
                 }}
                 className="bg-white text-orange-600 hover:bg-orange-50 px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-lg"
@@ -251,20 +217,24 @@ const EmployeesPage = () => {
 
       {/* Contenido principal */}
       <div className="max-w-8xl mx-auto px-6 -mt-8">
-        {/* Formulario - Solo se muestra si showForm es true */}
+        {/* Formulario */}
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100 animate-fadeIn">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-linear-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-md">
-                  <span className="text-2xl text-white">{editingId ? "✏️" : "👤"}</span>
+                  <span className="text-2xl text-white">
+                    {editingId ? "✏️" : "👤"}
+                  </span>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">
                     {editingId ? "Editar empleado" : "Registrar nuevo empleado"}
                   </h2>
                   <p className="text-sm text-gray-500">
-                    {editingId ? "Modifica los datos del empleado" : "Completa todos los campos para agregar un empleado"}
+                    {editingId
+                      ? "Modifica los datos del empleado"
+                      : "Completa todos los campos para agregar un empleado"}
                   </p>
                 </div>
               </div>
@@ -279,17 +249,20 @@ const EmployeesPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {/* Nombre completo */}
+                {/* Nombre de usuario */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Nombre completo <span className="text-red-500">*</span>
+                    Nombre de usuario <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej: Juan Pérez"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Ej: juan.perez"
+                    value={form.username}
+                    onChange={(e) =>
+                      setForm({ ...form, username: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
+                    required
                   />
                 </div>
 
@@ -302,35 +275,42 @@ const EmployeesPage = () => {
                     type="email"
                     placeholder="correo@ejemplo.com"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
+                    required
                   />
                 </div>
 
-                {/* Teléfono */}
+                {/* Nombres */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+57 300 123 4567"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
-                  />
-                </div>
-
-                {/* Cargo */}
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Cargo <span className="text-red-500">*</span>
+                    Nombres
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej: Cajero, Cocinero, Domiciliario"
-                    value={form.position}
-                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                    placeholder="Ej: Juan Carlos"
+                    value={form.first_name}
+                    onChange={(e) =>
+                      setForm({ ...form, first_name: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
+                  />
+                </div>
+
+                {/* Apellidos */}
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Apellidos
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Pérez Gómez"
+                    value={form.last_name}
+                    onChange={(e) =>
+                      setForm({ ...form, last_name: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
                   />
                 </div>
@@ -344,6 +324,7 @@ const EmployeesPage = () => {
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white appearance-none cursor-pointer"
+                    required
                   >
                     <option value="">Selecciona un rol</option>
                     {roles.map((rol, index) => (
@@ -354,23 +335,10 @@ const EmployeesPage = () => {
                   </select>
                 </div>
 
-                {/* Fecha de contratación */}
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Fecha de contratación <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={form.hire_date}
-                    onChange={(e) => setForm({ ...form, hire_date: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
-                  />
-                </div>
-
                 {/* Salario */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Salario <span className="text-red-500">*</span>
+                    Salario
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded-lg text-sm">
@@ -380,40 +348,41 @@ const EmployeesPage = () => {
                       type="number"
                       placeholder="0"
                       value={form.salary}
-                      onChange={(e) => setForm({ ...form, salary: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, salary: e.target.value })
+                      }
                       className="w-full pl-14 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
                     />
                   </div>
                 </div>
 
-                {/* Estado */}
+                {/* Estado Activo/Inactivo */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Estado <span className="text-red-500">*</span>
+                    Estado
                   </label>
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white appearance-none cursor-pointer"
-                  >
-                    <option value="activo">Activo</option>
-                    <option value="descanso">Descanso</option>
-                    <option value="vacaciones">Vacaciones</option>
-                  </select>
-                </div>
-
-                {/* Horario */}
-                <div className="lg:col-span-2 space-y-1.5">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Horario de trabajo
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Lunes a Viernes 8am-5pm, Sábados 9am-1pm"
-                    value={form.schedule}
-                    onChange={(e) => setForm({ ...form, schedule: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 focus:bg-white"
-                  />
+                  <div className="flex items-center gap-4 pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="is_active"
+                        checked={form.is_active === true}
+                        onChange={() => setForm({ ...form, is_active: true })}
+                        className="w-4 h-4 text-orange-600"
+                      />
+                      <span className="text-sm text-gray-700">Activo</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="is_active"
+                        checked={form.is_active === false}
+                        onChange={() => setForm({ ...form, is_active: false })}
+                        className="w-4 h-4 text-red-600"
+                      />
+                      <span className="text-sm text-gray-700">Inactivo</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -442,7 +411,9 @@ const EmployeesPage = () => {
           <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Total empleados</p>
+                <p className="text-sm text-gray-500 font-medium">
+                  Total empleados
+                </p>
                 <p className="text-3xl font-bold text-gray-800 mt-1">
                   {employees.length}
                 </p>
@@ -456,9 +427,9 @@ const EmployeesPage = () => {
           <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Activos hoy</p>
+                <p className="text-sm text-gray-500 font-medium">Activos</p>
                 <p className="text-3xl font-bold text-gray-800 mt-1">
-                  {employees.filter(e => e.status === "activo").length}
+                  {employees.filter((e) => e.is_active).length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
@@ -470,13 +441,13 @@ const EmployeesPage = () => {
           <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">En descanso</p>
+                <p className="text-sm text-gray-500 font-medium">Inactivos</p>
                 <p className="text-3xl font-bold text-gray-800 mt-1">
-                  {employees.filter(e => e.status === "descanso").length}
+                  {employees.filter((e) => !e.is_active).length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">☕</span>
+              <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">⭕</span>
               </div>
             </div>
           </div>
@@ -484,9 +455,16 @@ const EmployeesPage = () => {
           <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Nómina mensual</p>
+                <p className="text-sm text-gray-500 font-medium">
+                  Nómina mensual
+                </p>
                 <p className="text-3xl font-bold text-gray-800 mt-1">
-                  {formatCurrency(employees.reduce((acc, emp) => acc + emp.salary, 0))}
+                  {formatCurrency(
+                    employees.reduce((acc, emp) => {
+                      const salary = Number(emp.salary) || 0;
+                      return acc + salary;
+                    }, 0),
+                  )}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -496,7 +474,7 @@ const EmployeesPage = () => {
           </div>
         </div>
 
-        {/* Listado de empleados */}
+        {/* Listado de empleados - CON ROLES DE COLORES */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
             <div className="flex items-center gap-3">
@@ -519,13 +497,16 @@ const EmployeesPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Empleado
+                    Usuario
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Nombre completo
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Contacto
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Cargo / Rol
+                    Rol
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Salario
@@ -534,99 +515,115 @@ const EmployeesPage = () => {
                     Estado
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Último acceso
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {employees.map((emp) => (
-                  <tr
-                    key={emp.id}
-                    className="hover:bg-gray-50 transition-colors group"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-linear-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <span className="text-xl">{getRoleIcon(emp.role)}</span>
+                {employees.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center">
+                          <span className="text-5xl">👥</span>
                         </div>
-                        <div>
-                          <span className="font-semibold text-gray-900">
-                            {emp.name}
-                          </span>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Desde {new Date(emp.hire_date).toLocaleDateString("es-ES", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
-                          </p>
-                        </div>
+                        <p className="text-gray-600 font-semibold text-lg">
+                          No hay empleados registrados
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Comienza agregando tu primer empleado
+                        </p>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
+                  </tr>
+                ) : (
+                  employees.map((emp) => (
+                    <tr
+                      key={emp.id}
+                      className="hover:bg-gray-50 transition-colors group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-linear-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <span className="text-xl">
+                              {getRoleIcon(emp.role)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-900">
+                              @{emp.username}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-gray-900">
+                          {getFullName(emp)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-1 text-sm">
                           <span className="text-gray-500">📧</span>
                           <span className="text-gray-700">{emp.email}</span>
                         </div>
-                        {emp.phone && (
-                          <div className="flex items-center gap-1 text-sm">
-                            <span className="text-gray-500">📞</span>
-                            <span className="text-gray-700">{emp.phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <span className="font-medium text-gray-900">
-                          {emp.position}
+                      </td>
+                      <td className="px-6 py-4">
+                        {/* ROL CON COLORES DIFERENTES - ACTUALIZADO */}
+                        <span
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${getRoleColor(emp.role)}`}
+                        >
+                          {emp.role || "Sin rol"}
                         </span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                            {emp.role}
+                      </td>
+                      <td className="px-6 py-4">
+                        {emp.salary ? (
+                          <span className="font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg">
+                            {formatCurrency(emp.salary)}
                           </span>
-                        </div>
-                        {emp.schedule && (
-                          <p className="text-xs text-gray-500 flex items-center gap-1">
-                            <span>⏰</span>
-                            {emp.schedule}
-                          </p>
+                        ) : (
+                          <span className="text-gray-400 text-sm">
+                            No asignado
+                          </span>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg">
-                        {formatCurrency(emp.salary)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1.5 rounded-lg text-sm font-medium ${getStatusColor(emp.status)}`}>
-                        {emp.status === "activo" && "🟢 Activo"}
-                        {emp.status === "descanso" && "🟡 En descanso"}
-                        {emp.status === "vacaciones" && "🔵 Vacaciones"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(emp)}
-                          className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${getStatusColor(emp.is_active)}`}
                         >
-                          <span className="text-lg">✏️</span>
-                          <span className="text-sm font-medium">Editar</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(emp.id)}
-                          className="flex items-center gap-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-                        >
-                          <span className="text-lg">🗑️</span>
-                          <span className="text-sm font-medium">Eliminar</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {emp.is_active ? "🟢 Activo" : "🔴 Inactivo"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-600">
+                          {formatLastLogin(emp.last_login)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEdit(emp)}
+                            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            <span className="text-lg">✏️</span>
+                            <span className="text-sm font-medium">Editar</span>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(emp.id)}
+                            className="flex items-center gap-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            <span className="text-lg">🗑️</span>
+                            <span className="text-sm font-medium">
+                              Eliminar
+                            </span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
