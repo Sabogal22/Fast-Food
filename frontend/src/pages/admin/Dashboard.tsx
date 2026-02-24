@@ -479,13 +479,16 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl shadow-md p-5">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-gray-800 flex items-center gap-1">
-              <span className="text-xl">🔥</span> Productos Top
+              <span className="text-xl">🔥</span> Productos Destacados
             </h3>
-            <span className="text-sm text-gray-500">Esta semana</span>
+            <span className="text-sm text-gray-500">Más vendidos</span>
           </div>
           <div className="space-y-3">
             {products.slice(0, 5).map((producto, idx) => (
-              <div key={idx} className="flex items-center justify-between">
+              <div
+                key={producto.id || idx}
+                className="flex items-center justify-between"
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-gray-700 w-6">
                     #{idx + 1}
@@ -493,17 +496,26 @@ export default function AdminDashboard() {
                   <div>
                     <p className="font-medium text-gray-800">{producto.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-gray-500">
+                        ${producto.price?.toLocaleString()}
+                      </span>
+                      <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full ${
-                          producto.stock < 20
-                            ? "bg-red-100 text-red-700"
-                            : "bg-green-100 text-green-700"
+                          producto.is_available
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
                         }`}
                       >
-                        Stock: {producto.stock}
+                        {producto.is_available ? "Disponible" : "No disponible"}
                       </span>
                     </div>
                   </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                    {producto.category_name || "Sin categoría"}
+                  </span>
                 </div>
               </div>
             ))}
@@ -794,7 +806,10 @@ export default function AdminDashboard() {
 
           {/* Footer con acciones */}
           <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-            <button onClick={() => navigate("/admin/employees")} className="text-sm text-gray-500 hover:text-gray-700">
+            <button
+              onClick={() => navigate("/admin/employees")}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
               Ver todos →
             </button>
             {sortOrder && (
@@ -832,7 +847,10 @@ export default function AdminDashboard() {
             <span className="text-2xl">💰</span>
             <span className="text-xs mt-1">Finanzas</span>
           </button>
-          <button className="bg-white/20 hover:bg-white/30 rounded-xl p-3 transition-colors flex flex-col items-center">
+          <button
+            onClick={() => navigate("/admin/menu")}
+            className="bg-white/20 hover:bg-white/30 rounded-xl p-3 transition-colors flex flex-col items-center"
+          >
             <span className="text-2xl">📋</span>
             <span className="text-xs mt-1">Menú</span>
           </button>
