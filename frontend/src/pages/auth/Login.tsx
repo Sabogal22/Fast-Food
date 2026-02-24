@@ -181,19 +181,6 @@ export default function Login() {
                     👨‍🍳
                   </span>
                 </button>
-
-                {/* Enlace de registro estilo "nuevo en el restaurante" */}
-                <div className="text-center pt-4 border-t-2 border-dashed border-gray-200">
-                  <p className="text-gray-600">
-                    ¿Eres nuevo en Sabor Express?{" "}
-                    <a
-                      href="#"
-                      className="text-orange-600 hover:text-orange-700 font-semibold hover:underline"
-                    >
-                      Crea tu receta aquí
-                    </a>
-                  </p>
-                </div>
               </div>
             </div>
 
