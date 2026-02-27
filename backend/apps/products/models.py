@@ -52,6 +52,29 @@ class Ingredient(models.Model):
     default=Decimal("0.00")
   )
 
+  supplier = models.CharField(
+    max_length=200,
+    blank=True,
+    null=True,
+    help_text="Proveedor del ingrediente"
+  )
+
+  purchase_cost = models.DecimalField(
+    max_digits=10,
+    decimal_places=2,
+    blank=True,
+    null=True,
+    help_text="Costo de compra por unidad"
+  )
+
+  # Contacto del proveedor (opcional)
+  supplier_contact = models.CharField(
+    max_length=200,
+    blank=True,
+    null=True,
+    help_text="Nombre de contacto del proveedor"
+  )
+
   created_at = models.DateTimeField(auto_now_add=True)
 
   def __str__(self):

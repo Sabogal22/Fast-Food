@@ -38,16 +38,15 @@ Sistema administrativo para restaurantes de comida rápida que permite gestionar
 ## 📁 Estructura del Proyecto
 frontend/
 ├── src/
-│ ├── components/ # Componentes reutilizables
-│ ├── pages/ # Páginas de la aplicación
-│ │ ├── admin/ # Módulo administrador
-│ │ └── auth/ # Autenticación
-│ ├── services/ # Conexión con API
-│ ├── types/ # Tipos de TypeScript
-│ └── utils/ # Utilidades
-├── public/ # Archivos estáticos
+│   ├── components/           # Componentes reutilizables
+│   ├── pages/                # Páginas de la aplicación
+│   │   ├── admin/            # Módulo administrador
+│   │   └── auth/             # Autenticación
+│   ├── services/             # Conexión con API
+│   ├── types/                # Tipos de TypeScript
+│   └── utils/                # Utilidades
+├── public/                   # Archivos estáticos
 └── package.json
-
 
 ## ⚙️ Instalación
 
@@ -76,5 +75,3 @@ npm run dev
 
 Licencia
 Todos los derechos reservados © 2026
-
-¿Quieres que agregue algo más al README?

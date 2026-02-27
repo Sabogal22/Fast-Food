@@ -9,3 +9,14 @@ export interface Product {
   updatedAt?: string;
   is_available: boolean;
 }
+
+export interface Ingredient {
+  id: number;
+  name: string;
+  stock: number;
+  unit: string;
+  minimum_stock: number;
+  supplier: string;
+  purchase_cost: number;
+  supplier_contact: string;
+}

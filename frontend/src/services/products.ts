@@ -6,3 +6,4 @@ export const updateProduct = (id: number, data: any) =>
   api.put(`/products/${id}/`, data);
 export const deleteProduct = (id: number) =>
   api.delete(`/products/${id}/`);
+export const criticalInventory = () => api.get("/inventory/critical/");

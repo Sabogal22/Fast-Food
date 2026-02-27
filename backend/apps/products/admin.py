@@ -37,5 +37,8 @@ class IngredientAdmin(admin.ModelAdmin):
     "unit",
     "minimum_stock",
     "created_at",
+    "supplier",
+    "purchase_cost",
+    "supplier_contact",
   )
   search_fields = ("name",)

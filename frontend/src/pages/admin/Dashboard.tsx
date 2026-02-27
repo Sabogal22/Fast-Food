@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getProducts } from "../../services/products";
+import { getProducts, criticalInventory } from "../../services/products";
 import { getEmployees } from "../../services/employe";
-import type { Product } from "../../types/products";
+import type { Product, Ingredient } from "../../types/products";
 import type { Employee } from "../../types/users";
 import Navbar from "../admin/layout/navbar";
 
@@ -81,44 +81,6 @@ export default function AdminDashboard() {
     { hora: "17:00", ventas: "$670", ordenes: 5 },
   ];
 
-  const inventarioCritico = [
-    {
-      producto: "Aguacate",
-      stock: 8,
-      minimo: 20,
-      unidad: "piezas",
-      proveedor: "Frutos del Campo",
-    },
-    {
-      producto: "Queso Parmesano",
-      stock: 2.5,
-      minimo: 5,
-      unidad: "kg",
-      proveedor: "Lácteos La Pradera",
-    },
-    {
-      producto: "Cebolla Morada",
-      stock: 3,
-      minimo: 15,
-      unidad: "kg",
-      proveedor: "Verduras El Valle",
-    },
-    {
-      producto: "Limón",
-      stock: 1,
-      minimo: 10,
-      unidad: "bolsas",
-      proveedor: "Cítricos SA",
-    },
-    {
-      producto: "Carne Molida",
-      stock: 5,
-      minimo: 15,
-      unidad: "kg",
-      proveedor: "Carnes Premium",
-    },
-  ];
-
   const pedidosProveedores = [
     {
       id: "P-1234",
@@ -181,8 +143,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
-  // Agrega estos estados al inicio del componente
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [inventarioCritico, setInventarioCritico] = useState<Ingredient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Función para obtener color según el rol (copia esta función)
@@ -243,6 +205,20 @@ export default function AdminDashboard() {
     };
 
     fetchEmpleados();
+  }, []);
+
+  /* El inventario critico */
+  useEffect(() => {
+    const fetchInventarioCritico = async () => {
+      try {
+        const res = await criticalInventory();
+        setInventarioCritico(res.data);
+      } catch (error) {
+        console.error("Error cargando inventario crítico", error);
+      }
+    };
+
+    fetchInventarioCritico();
   }, []);
 
   return (
@@ -550,19 +526,19 @@ export default function AdminDashboard() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-800">
-                      {item.producto}
+                      {item.name}
                     </span>
                     <span className="text-xs bg-white px-2 py-0.5 rounded-full border border-red-300 text-red-700">
-                      Mín: {item.minimo} {item.unidad}
+                      Mín: {item.minimum_stock} {item.unit}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mt-1 text-xs">
                     <span className="text-gray-600">Stock actual:</span>
                     <span className="font-bold text-red-600">
-                      {item.stock} {item.unidad}
+                      {item.stock} {item.unit}
                     </span>
                     <span className="text-gray-400">•</span>
-                    <span className="text-gray-600">{item.proveedor}</span>
+                    <span className="text-gray-600">{item.supplier}</span>
                   </div>
                 </div>
                 <button className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
