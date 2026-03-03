@@ -803,9 +803,9 @@ export default function AdminDashboard() {
           <span className="text-2xl">⚡</span> Acciones de Administración
         </h3>
         <div className="grid grid-cols-6 gap-3">
-          <button className="bg-white/20 hover:bg-white/30 rounded-xl p-3 transition-colors flex flex-col items-center">
-            <span className="text-2xl">📊</span>
-            <span className="text-xs mt-1">Reportes</span>
+          <button onClick={() => navigate("/admin/ingredients")} className="bg-white/20 hover:bg-white/30 rounded-xl p-3 transition-colors flex flex-col items-center">
+            <span className="text-2xl"></span>
+            <span className="text-xs mt-1">Ingredientes</span>
           </button>
           <button className="bg-white/20 hover:bg-white/30 rounded-xl p-3 transition-colors flex flex-col items-center">
             <span className="text-2xl">👥</span>

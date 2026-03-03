@@ -19,4 +19,8 @@ export interface Ingredient {
   supplier: string;
   purchase_cost: number;
   supplier_contact: string;
+  created_at: string;
+  is_low_stock: boolean;
+  value: string;
+  label: string;
 }
