@@ -10,10 +10,27 @@ import type { Category } from "../../../types/category";
 import { getCategories } from "../../../services/categories";
 import Navbar from "../layout/navbar";
 
+// Función helper para formatear precio en formato colombiano
+const formatPriceCOP = (price: number): string => {
+  return new Intl.NumberFormat("es-CO", {
+    style: "decimal",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(price).replace(/,/g, ' '); // Nota: Esto es un espacio fino, no una coma
+};
+
+// Función para parsear un string con formato colombiano a número
+const parsePriceCOP = (priceString: string): number => {
+  // Eliminar puntos de miles y reemplazar coma decimal por punto
+  const normalized = priceString.replace(/\./g, '').replace(/,/g, '.');
+  return Number(normalized);
+};
+
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [priceInput, setPriceInput] = useState<string>("");
 
   const handleEdit = (product: Product) => {
     setEditingId(product.id);
@@ -21,19 +38,19 @@ const ProductsPage = () => {
       name: product.name,
       description: product.description || "",
       price: product.price.toString(),
-      stock: product.stock.toString(),
-      minimum_stock: product.minimum_stock?.toString() || "0",
       category: product.category.toString(),
+      is_available: product.is_available,
     });
+    // Formatear el precio para mostrarlo en el input
+    setPriceInput(formatPriceCOP(product.price));
   };
 
   const [form, setForm] = useState({
     name: "",
     description: "",
     price: "",
-    stock: "",
-    minimum_stock: "",
     category: "",
+    is_available: true,
   });
 
   useEffect(() => {
@@ -51,6 +68,37 @@ const ProductsPage = () => {
     setCategories(res.data);
   };
 
+  // Manejador para el input de precio con formato colombiano
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    
+    // Permitir solo números, puntos y una coma
+    value = value.replace(/[^\d.,]/g, '');
+    
+    // Prevenir múltiples comas decimales
+    const commaCount = (value.match(/,/g) || []).length;
+    if (commaCount > 1) return;
+    
+    // Prevenir múltiples puntos (solo deben ser separadores de miles)
+    if (commaCount === 0) {
+      // Si no hay coma, los puntos deben ser solo para miles
+      const parts = value.split('.');
+      if (parts.length > 2) return; // Más de un punto sin coma no es válido
+    }
+    
+    setPriceInput(value);
+    
+    // Convertir a número para el estado interno
+    try {
+      const numericValue = parsePriceCOP(value);
+      if (!isNaN(numericValue)) {
+        setForm({ ...form, price: numericValue.toString() });
+      }
+    } catch {
+      // Si no se puede parsear, no actualizamos el form price
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -58,9 +106,8 @@ const ProductsPage = () => {
       name: form.name,
       description: form.description,
       price: Number(form.price),
-      stock: Number(form.stock),
-      minimum_stock: Number(form.minimum_stock),
       category: Number(form.category),
+      is_available: form.is_available,
     };
 
     try {
@@ -75,10 +122,10 @@ const ProductsPage = () => {
         name: "",
         description: "",
         price: "",
-        stock: "",
-        minimum_stock: "",
         category: "",
+        is_available: true,
       });
+      setPriceInput("");
 
       await fetchProducts();
     } catch (error) {
@@ -99,10 +146,10 @@ const ProductsPage = () => {
       name: "",
       description: "",
       price: "",
-      stock: "",
-      minimum_stock: "",
       category: "",
+      is_available: true,
     });
+    setPriceInput("");
   };
 
   return (
@@ -119,7 +166,7 @@ const ProductsPage = () => {
                 <h1 className="text-4xl font-black tracking-tight">Productos</h1>
                 <p className="text-purple-100 mt-1 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-purple-200 rounded-full"></span>
-                  Gestiona el inventario de tu restaurante
+                  Gestiona el menú de tu restaurante
                 </p>
               </div>
             </div>
@@ -132,7 +179,7 @@ const ProductsPage = () => {
 
       {/* Contenido principal */}
       <div className="max-w-8xl mx-auto px-6 -mt-8">
-        {/* Tarjeta del formulario - Más compacta y elegante */}
+        {/* Tarjeta del formulario */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -161,7 +208,7 @@ const ProductsPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Nombre del producto */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">
@@ -177,7 +224,7 @@ const ProductsPage = () => {
                 />
               </div>
 
-              {/* Precio */}
+              {/* Precio con formato colombiano */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">
                   Precio <span className="text-red-500">*</span>
@@ -187,47 +234,18 @@ const ProductsPage = () => {
                     $
                   </span>
                   <input
-                    type="number"
-                    placeholder="0.00"
-                    value={form.price}
-                    onChange={(e) =>
-                      setForm({ ...form, price: e.target.value })
-                    }
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={priceInput}
+                    onChange={handlePriceChange}
                     className="w-full pl-14 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-gray-50 focus:bg-white"
                     required
                   />
                 </div>
-              </div>
-
-              {/* Stock */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Stock disponible <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-gray-50 focus:bg-white"
-                  required
-                />
-              </div>
-
-              {/* Stock mínimo */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Stock mínimo
-                </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={form.minimum_stock}
-                  onChange={(e) =>
-                    setForm({ ...form, minimum_stock: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-gray-50 focus:bg-white"
-                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Formato: 1.500 o 2.500,50 (punto para miles, coma para decimales)
+                </p>
               </div>
 
               {/* Categoría */}
@@ -252,8 +270,28 @@ const ProductsPage = () => {
                 </select>
               </div>
 
-              {/* Descripción - Ocupa 2 columnas en lg */}
-              <div className="lg:col-span-2 space-y-1.5">
+              {/* Disponibilidad */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Estado
+                </label>
+                <div className="flex items-center gap-4 h-[42px] bg-gray-50 px-4 rounded-xl border border-gray-200">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.is_available}
+                      onChange={(e) =>
+                        setForm({ ...form, is_available: e.target.checked })
+                      }
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">Disponible</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Descripción - Ocupa 2 columnas */}
+              <div className="col-span-2 space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">
                   Descripción
                 </label>
@@ -281,8 +319,8 @@ const ProductsPage = () => {
           </form>
         </div>
 
-        {/* Estadísticas rápidas - Diseño más moderno */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        {/* Estadísticas rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
           <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
@@ -300,33 +338,19 @@ const ProductsPage = () => {
           <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">Stock total</p>
+                <p className="text-sm text-gray-500 font-medium">Disponibles</p>
                 <p className="text-3xl font-bold text-gray-800 mt-1">
-                  {products.reduce((acc, prod) => acc + prod.stock, 0)}
+                  {products.filter(p => p.is_available).length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">📊</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Categorías</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">
-                  {categories.length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">🏷️</span>
+                <span className="text-3xl">✅</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Listado de productos - Diseño mejorado */}
+        {/* Listado de productos */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="px-6 py-5 bg-linear-to-r from-gray-50 to-white border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -357,7 +381,7 @@ const ProductsPage = () => {
                     Precio
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Stock
+                    Estado
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Categoría
@@ -409,28 +433,19 @@ const ProductsPage = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-lg">
-                          ${new Intl.NumberFormat("es-CO").format(prod.price)}
+                          ${formatPriceCOP(prod.price)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                              prod.stock < 10
-                                ? "bg-red-100 text-red-700"
-                                : prod.stock < 30
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
-                            }`}
-                          >
-                            {prod.stock} {prod.stock === 1 ? "unidad" : "unidades"}
-                          </span>
-                          {prod.minimum_stock && prod.stock <= prod.minimum_stock && (
-                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-                              Stock bajo
-                            </span>
-                          )}
-                        </div>
+                        <span
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                            prod.is_available
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {prod.is_available ? "Disponible" : "No disponible"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1.5 bg-linear-to-r from-purple-100 to-purple-50 text-purple-700 rounded-lg text-sm font-medium">
